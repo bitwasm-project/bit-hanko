@@ -1,6 +1,7 @@
 import qrcode from "qrcode-generator";
 import { icon } from "../design/icons";
 import { webApp, webDemo } from "../signer";
+import { demo } from "./demo-inject";
 import type { SignerState } from "../signer";
 import { tr } from "../views";
 import { bip85, exportMultisig, registerMultisig, signMessage } from "./advanced";
@@ -9,10 +10,6 @@ import { canStore, disableStorage, enableStorage, hex, passkeySecret, savedKeys,
 import type { Saved } from "./keystore";
 import { call, startEngine } from "./engine";
 
-// Published BIP39 test words, their first testnet receive address, and a testnet PSBT that spends from them (samples/psbt-ur-test-only.png)
-const testMnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-const testAddress = "tb1q6rz28mcfaxtmd6v789l9rrlrusdprr9pqcpvkl";
-const testPsbt = "UR:CRYPTO-PSBT/HDYLJOJKIDJYZMADAEGMAOAEAEAEADFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWFWAEAEAEAEAEZMZMZMZMADROLFADAEAEAEAEAECMAEBBFMEEMKHLSGJLUTSOZOENNLFZVESTTPVOLTFHGMNSAEAEAEAEAEADADCTNBLNADAEAEAEAEAECMAEBBRTTORFTBSRTESGLKKPUOHYSWDMRNGOEOBAYTBEVOCPAMAXDYTLGWTIUTFWBKJTHELGENDKYKWFFDDWPLECBSKKTLWTKPFRYKRNWSNSDPMEPEFNCSJKSKTNBKGHAEAELAAEAEAELAAEAEAELAAEAEAEAEAEAEAEAEAECPAOAXAOGUDKLOMNFWNYROVLUYPECTKSAOIELUNSTICKNDFPLRLPSKZSGSCWNDHGAEVYOLCSJKSKTNBKGHAEAELAAEAEAELAAEAEAELAADAEAEAEAEAEAEAEAEUYASYLBN";
 
 type Output = { amount: number; owner: string; kind: string; text: string };
 type Review = { spend: number; fee: number; totalIn: number; signatures: number; outputs: Output[] };
@@ -200,7 +197,7 @@ function scanPsbt(): Promise<Review> {
       call("reset_ur");
       return String(error);
     }
-  }, webDemo ? ["scan-test", tr("テスト用の取引を使う", "Use the test transaction"), testPsbt] : undefined);
+  }, demo ? ["scan-test", tr("テスト用の取引を使う", "Use the test transaction"), demo.psbt] : undefined);
 }
 
 // The engine reads the SeedQR from the camera's frames and keeps it: the page learns only that one was found
@@ -537,7 +534,7 @@ async function checkAddress(): Promise<void> {
       view.remove();
       resolve({ address, account, count });
     };
-    view.querySelector("#address-test")?.addEventListener("click", () => { field("address").value = testAddress; check(); });
+    view.querySelector("#address-test")?.addEventListener("click", () => { field("address").value = demo!.address; check(); });
     view.querySelector("#address-check")!.addEventListener("click", check);
     // Cancelling the scan leaves this screen open, so the address can still be typed
     view.querySelector("#address-scan")!.addEventListener("click", () => scan("address", (text) => ({ done: text })).then((text) => { field("address").value = text; check(); }, () => undefined));
@@ -700,7 +697,7 @@ export async function webInvoke<T>(command: string, args?: Record<string, unknow
     case "parser_info":
       return call("parser_info") as T;
     case "demo_seed": {
-      await loadWords(new TextEncoder().encode(testMnemonic));
+      await loadWords(new TextEncoder().encode(demo!.mnemonic));
       return state() as T;
     }
     case "find_address":
