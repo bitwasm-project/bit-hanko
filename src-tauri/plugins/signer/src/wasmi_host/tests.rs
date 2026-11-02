@@ -565,3 +565,220 @@ fn word_entry_comes_from_the_module() {
         true
     );
 }
+
+// Splits a PSBT into UR frames with the parser, the way a wallet app would show it
+fn ur_frames(engine: &mut SignerEngine, psbt: &[u8]) -> Vec<String> {
+    let out = engine.parser.call("parser_output", &[]).unwrap() as usize;
+    engine.parser.write(out, psbt).unwrap();
+    let count = engine
+        .parser
+        .call("parser_ur_encode_start", &[psbt.len() as i64, 200])
+        .unwrap();
+    let input = engine.parser.call("parser_input", &[]).unwrap() as usize;
+    let frames = (0..count)
+        .map(|_| {
+            let len = engine.parser.call("parser_ur_encode_next", &[]).unwrap() as usize;
+            String::from_utf8(engine.parser.read(input, len).unwrap()).unwrap()
+        })
+        .collect();
+    engine.parser.call("parser_ur_reset", &[]).unwrap();
+    frames
+}
+
+fn psbt_from_frames(engine: &mut SignerEngine, frames: &[Value]) -> Vec<u8> {
+    engine.parser.call("parser_ur_reset", &[]).unwrap();
+    let input = engine.parser.call("parser_input", &[]).unwrap() as usize;
+    for frame in frames {
+        let bytes = frame.as_str().unwrap().as_bytes();
+        engine.parser.write(input, bytes).unwrap();
+        let n = engine
+            .parser
+            .call("parser_ur_receive", &[bytes.len() as i64])
+            .unwrap();
+        if n > 0 {
+            return engine.parser.read(input, n as usize).unwrap();
+        }
+    }
+    panic!("the signed frames never completed a PSBT");
+}
+
+// Whether the test mnemonic's key at a path the PSBT claims really produces this script
+fn ours(output: &bitcoin::psbt::Output, script: &bitcoin::ScriptBuf) -> bool {
+    use bitcoin::bip32::Xpriv;
+    use bitcoin::secp256k1::Secp256k1;
+    use bitcoin::{CompressedPublicKey, Network, ScriptBuf};
+
+    let secp = Secp256k1::new();
+    let seed = bip39::Mnemonic::parse(MNEMONIC).unwrap().to_seed("");
+    let root = Xpriv::new_master(Network::Bitcoin, &seed).unwrap();
+    let key_at = |path| {
+        root.derive_priv(&secp, path)
+            .unwrap()
+            .private_key
+            .public_key(&secp)
+    };
+    output
+        .bip32_derivation
+        .iter()
+        .any(|(key, (fingerprint, path))| {
+            *fingerprint == root.fingerprint(&secp)
+                && key_at(path) == *key
+                && *script == ScriptBuf::new_p2wpkh(&CompressedPublicKey(*key).wpubkey_hash())
+        })
+        || output
+            .tap_key_origins
+            .iter()
+            .any(|(key, (_, (fingerprint, path)))| {
+                *fingerprint == root.fingerprint(&secp)
+                    && key_at(path).x_only_public_key().0 == *key
+                    && *script == ScriptBuf::new_p2tr(&secp, *key, None)
+            })
+}
+
+// Reads the signed PSBT back with rust-bitcoin, independently of the wasm modules, and checks that the
+// review screen showed exactly the transaction that was signed and that every signature verifies
+fn assert_review_matches_signed(psbt: &[u8], testnet: bool) {
+    use bitcoin::hashes::Hash;
+    use bitcoin::secp256k1::{Message, Secp256k1};
+    use bitcoin::sighash::{EcdsaSighashType, Prevouts, SighashCache};
+    use bitcoin::{Address, Network, Psbt, TapSighashType, TxOut};
+
+    let mut engine = engine();
+    engine.set_network(testnet).unwrap();
+    let mut payload = SEEDQR.as_bytes().to_vec();
+    engine.load_seed_qr(&mut payload, &mut Vec::new()).unwrap();
+    let mut review = Value::Null;
+    for frame in ur_frames(&mut engine, psbt) {
+        let reply = engine.receive_ur(&frame).unwrap();
+        if reply["complete"] == true {
+            review = reply["review"].clone();
+        }
+    }
+    assert!(review.is_object(), "the review never appeared");
+    let signed = engine.sign().unwrap();
+    let signed = psbt_from_frames(&mut engine, signed["frames"].as_array().unwrap());
+
+    let original = Psbt::deserialize(psbt).unwrap();
+    let signed = Psbt::deserialize(&signed).unwrap();
+    let tx = &signed.unsigned_tx;
+    assert_eq!(
+        tx, &original.unsigned_tx,
+        "the signed transaction is the one reviewed"
+    );
+
+    let network = if testnet {
+        Network::Testnet
+    } else {
+        Network::Bitcoin
+    };
+    let shown = review["outputs"].as_array().unwrap();
+    assert_eq!(shown.len(), tx.output.len());
+    for (index, (shown, output)) in shown.iter().zip(&tx.output).enumerate() {
+        assert_eq!(
+            shown["amount"],
+            output.value.to_sat(),
+            "amount of output {index}"
+        );
+        assert_eq!(shown["kind"], "Address", "output {index}");
+        let address = Address::from_script(&output.script_pubkey, network).unwrap();
+        assert_eq!(
+            shown["text"],
+            address.to_string(),
+            "address of output {index}"
+        );
+        // Showing our own output as "Send to" only costs a closer look; the reverse hides a payment
+        if shown["owner"] != "Send to" {
+            assert!(
+                ours(&signed.outputs[index], &output.script_pubkey),
+                "output {index} is shown as ours but is not"
+            );
+        }
+    }
+
+    let prevouts: Vec<TxOut> = signed
+        .inputs
+        .iter()
+        .zip(&tx.input)
+        .map(
+            |(input, txin)| match (&input.witness_utxo, &input.non_witness_utxo) {
+                (Some(utxo), _) => utxo.clone(),
+                (None, Some(prev)) => prev.output[txin.previous_output.vout as usize].clone(),
+                _ => panic!("an input without its previous output"),
+            },
+        )
+        .collect();
+    let total_in: u64 = prevouts.iter().map(|out| out.value.to_sat()).sum();
+    let total_out: u64 = tx.output.iter().map(|out| out.value.to_sat()).sum();
+    assert_eq!(review["totalIn"], total_in);
+    assert_eq!(review["totalOut"], total_out);
+    assert_eq!(review["fee"], total_in - total_out);
+
+    let secp = Secp256k1::verification_only();
+    let mut cache = SighashCache::new(tx);
+    let mut verified = 0;
+    for (index, input) in signed.inputs.iter().enumerate() {
+        let spk = &prevouts[index].script_pubkey;
+        for (key, sig) in &input.partial_sigs {
+            assert!(
+                spk.is_p2wpkh(),
+                "input {index}: only P2WPKH ECDSA is checked here"
+            );
+            let hash = cache
+                .p2wpkh_signature_hash(
+                    index,
+                    spk,
+                    prevouts[index].value,
+                    EcdsaSighashType::from_consensus(sig.sighash_type as u32),
+                )
+                .unwrap();
+            secp.verify_ecdsa(
+                &Message::from_digest(hash.to_byte_array()),
+                &sig.signature,
+                &key.inner,
+            )
+            .unwrap_or_else(|_| panic!("input {index}: ECDSA signature does not verify"));
+            verified += 1;
+        }
+        if let Some(sig) = input.tap_key_sig {
+            assert!(spk.is_p2tr(), "input {index}");
+            let hash = cache
+                .taproot_key_spend_signature_hash(
+                    index,
+                    &Prevouts::All(&prevouts),
+                    sig.sighash_type,
+                )
+                .unwrap();
+            let key = bitcoin::XOnlyPublicKey::from_slice(&spk.as_bytes()[2..34]).unwrap();
+            secp.verify_schnorr(
+                &sig.signature,
+                &Message::from_digest(hash.to_byte_array()),
+                &key,
+            )
+            .unwrap_or_else(|_| panic!("input {index}: Schnorr signature does not verify"));
+            assert_eq!(sig.sighash_type, TapSighashType::Default);
+            verified += 1;
+        }
+    }
+    assert!(verified > 0, "nothing was signed");
+    assert_eq!(review["signatures"], verified);
+}
+
+#[test]
+fn the_review_shows_what_is_signed_for_the_demo_transaction() {
+    let demo = include_str!("../../../../../src/web/demo-inject.ts");
+    let ur = demo
+        .split("psbt: \"")
+        .nth(1)
+        .unwrap()
+        .split('"')
+        .next()
+        .unwrap();
+    let mut engine = engine();
+    let psbt = psbt_from_frames(&mut engine, &[Value::from(ur.to_ascii_lowercase())]);
+    assert_review_matches_signed(&psbt, true);
+}
+
+#[test]
+fn the_review_shows_what_is_signed_for_the_anti_exfil_transaction() {
+    assert_review_matches_signed(include_bytes!("anti_exfil.psbt"), false);
+}
