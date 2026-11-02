@@ -58,13 +58,6 @@ function button(id: string, label: string, variant: "primary" | "secondary" | "d
   return `<button class="button button-${variant}" id="${id}" ${disabledIf(opts.disabled)}>${opts.icon ? icon(opts.icon, 20) : ""}<span>${label}</span></button>`;
 }
 
-function tile(id: string, iconName: string, title: string, detail: string, disabled: boolean) {
-  return `<button class="tile tile-wide" id="${id}" ${disabledIf(disabled)}>
-    <span class="tile-icon">${icon(iconName)}</span>
-    <span class="tile-copy"><span class="tile-title">${title}</span><span class="tile-detail">${detail}</span></span>
-  </button>`;
-}
-
 function row(id: string, iconName: string, title: string, detail: string, opts: { value?: string; disabled?: boolean } = {}) {
   return `<button class="row" id="${id}" ${disabledIf(opts.disabled)}>${icon(iconName)}
     <span class="row-copy"><span class="row-title">${title}</span>${detail ? `<span class="row-detail">${detail}</span>` : ""}</span>
@@ -82,13 +75,6 @@ const group = (label: string, body: string) => `<section class="group"><h2 class
 const question = (title: string, lead?: string) => `<div class="question"><h1>${title}</h1>${lead ? `<p class="lead">${lead}</p>` : ""}</div>`;
 
 function homeView({ signer, busy }: View) {
-  if (webDemo) return {
-    body: `${question("BitHanko", tr("ブラウザ版では、公開されたテスト用の単語だけを使います。単語やSeedQRの入力はできません。", "The browser version only uses published test words. Typing words or scanning a SeedQR is turned off."))}
-    ${group(tr("ウォレットを読み込む", "IMPORT WALLET"),
-      tile("demo-seed", "words", tr("テスト用の鍵を使う", "Use the test key"), tr("abandon を11回と about・BIP39のテスト用の単語", "abandon ×11 + about · the BIP39 test words"), busy))}
-    ${group(tr("新しいウォレット", "NEW WALLET"),
-      tile("create-mnemonic", "plus", tr("新しいウォレットを作る(デモ)", "Create a new wallet (demo)"), tr("作った単語は本物の資金に使わないでください。", "Never use the words it makes for real funds."), busy))}`,
-  };
   const saved = signer.saved ?? 0;
   const blocked = busy || restrictionBlocks(signer);
   return {
@@ -98,6 +84,7 @@ function homeView({ signer, busy }: View) {
     ${saved ? group(tr("この端末に保存した鍵", "SAVED ON THIS DEVICE"),
       `<div class="card">${row("unlock-saved", "lock", tr("保存した鍵を開く", "Open a saved key"), tr(`${saved}件・画面ロックか生体認証`, `${saved} saved · screen lock or biometrics`), { disabled: blocked })}</div>`) : ""}
     ${group(tr("ウォレットを読み込む", "IMPORT WALLET"), `<div class="card">
+      ${webDemo ? row("demo-seed", "words", tr("テスト用の鍵を使う", "Use the test key"), tr("abandon を11回と about・BIP39のテスト用の単語", "abandon ×11 + about · the BIP39 test words"), { disabled: blocked }) : ""}
       ${row("scan", "qr", tr("バックアップのQRを読み取る", "Scan your backup QR"), tr("SeedQR・CompactSeedQR", "SeedQR or CompactSeedQR"), { disabled: blocked })}
       ${row("import-mnemonic", "words", tr("シードフレーズを入力する", "Type your recovery words"), tr("12〜24個の単語", "12 to 24 words"), { disabled: blocked })}
     </div>`)}
