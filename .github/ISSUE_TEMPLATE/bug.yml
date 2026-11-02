@@ -1,0 +1,59 @@
+name: Bug report
+description: Something behaves differently from what the documentation says
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Not for security problems — see [SECURITY.md](https://github.com/bitwasm-project/bit-hanko/blob/main/SECURITY.md).
+        **Never paste a recovery phrase, a SeedQR, a passphrase or an xprv**, not even a screenshot of one. Use the public test words (`abandon` ×11, `about`) to reproduce.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where
+      options:
+        - Android app
+        - iPhone app (native)
+        - Web app (PWA) on iPhone
+        - Web app (PWA) on Android
+        - Browser demo
+        - Signer Lockdown
+        - USB installer page
+        - Docs
+        - Build or CI
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes:
+      label: Version or build
+      description: The version in Settings, or the build name in the web app (Settings › This build). For a local build, `git rev-parse --short HEAD`.
+    validations: { required: true }
+  - type: input
+    id: device
+    attributes:
+      label: Phone and OS version
+      description: For example "Android 10, ARMv7" or "iOS 18.6". The model is optional.
+  - type: dropdown
+    id: network
+    attributes:
+      label: Network
+      options: [testnet, signet, regtest, "mainnet (please do not test with real funds)", "not relevant"]
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected instead
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: |
+        Steps from a fresh start. A test PSBT (base64 or the UR) and the wallet app that made it are worth more than prose.
+    validations: { required: true }
+  - type: checkboxes
+    id: signing
+    attributes:
+      label: Signing
+      options:
+        - label: The review screen showed something different from what was signed or broadcast (this is the most serious kind of bug)

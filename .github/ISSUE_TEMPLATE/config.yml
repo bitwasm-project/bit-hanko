@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/bitwasm-project/bit-hanko/security/advisories/new
+    about: Do not open a public issue. Report privately — see SECURITY.md.
+  - name: A problem in the signing modules themselves (parser.wasm / signer.wasm)
+    url: https://github.com/bitwasm-project/bitwasm-signer/issues
+    about: Those are built in bitwasm-signer; report there.
