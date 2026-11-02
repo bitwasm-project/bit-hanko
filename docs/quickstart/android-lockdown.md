@@ -15,11 +15,11 @@ Do not add any account. A device owner can only be set on a phone with no accoun
 
 ## 3. Apply the restrictions {#android-lockdown-apply}
 
-Set a screen lock. Do not add a Google account, and turn off every switch on the Google Services screen. Open Signer Lockdown, tap Install the signer, turn on airplane mode and tap Apply restrictions.
+Set a screen lock. Do not add a Google account, and turn off every switch on the Google Services screen. Open Signer Lockdown, tap Install the signer, take out the SIM card, turn on airplane mode and tap Apply restrictions.
 
 <div class="shots">
 <Shot name="lockdown-status" caption="After installing the signer" />
-<Shot name="lockdown-apply" caption="Turn on airplane mode, then Apply restrictions" />
+<Shot name="lockdown-apply" caption="With the SIM card out and airplane mode on, Apply restrictions" />
 </div>
 
 ## 4. Save the key and use it {#android-lockdown-use}

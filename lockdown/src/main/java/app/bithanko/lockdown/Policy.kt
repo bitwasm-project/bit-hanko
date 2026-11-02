@@ -14,6 +14,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.UserManager
 import android.provider.Settings
+import android.telephony.TelephonyManager
 import java.io.File
 import java.io.InputStream
 import java.util.Locale
@@ -32,6 +33,21 @@ class Policy(private val context: Context) {
 
     val isAirplaneModeOn
         get() = Settings.Global.getInt(context.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) == 1
+
+    // Any state but absent counts, since a SIM can read as not ready while airplane mode is on
+    @Suppress("DEPRECATION")
+    val hasSim: Boolean
+        get() {
+            val phone = context.getSystemService(TelephonyManager::class.java) ?: return false
+            return (0 until phone.phoneCount).any { phone.getSimState(it) != TelephonyManager.SIM_STATE_ABSENT }
+        }
+
+    // Lockdown 0.6.0 and earlier set DISALLOW_AIRPLANE_MODE, which makes Android turn airplane mode off and keep it off
+    fun dropAirplaneRestriction() {
+        if (isDeviceOwner && dpm.getUserRestrictions(admin).getBoolean(UserManager.DISALLOW_AIRPLANE_MODE)) {
+            dpm.clearUserRestriction(admin, UserManager.DISALLOW_AIRPLANE_MODE)
+        }
+    }
 
     val hiddenPackages: List<String> by lazy {
         runCatching { context.assets.open("hide.txt").bufferedReader().readLines() }
@@ -122,13 +138,16 @@ class Policy(private val context: Context) {
     val savedWifiCount get() = savedNetworks().size
 
     fun apply(forgetWifi: Boolean) {
-        // DISALLOW_AIRPLANE_MODE freezes the current state, so applying it with airplane mode off keeps the radios on
+        // A device owner cannot hold airplane mode on, so the radios are left nothing to join: no SIM,
+        // no saved or new Wi-Fi, no Bluetooth, and no quick settings to flip airplane mode from
         check(isAirplaneModeOn) { tr("先に機内モードをオンにしてください。", "Turn on airplane mode first") }
+        check(!hasSim) { tr("先に SIM カードを抜いてください。", "Remove the SIM card first") }
         if (forgetWifi) {
             val wifi = context.getSystemService(WifiManager::class.java)
             savedNetworks().forEach { wifi.removeNetwork(it.networkId) }
         }
         RESTRICTIONS.forEach { dpm.addUserRestriction(admin, it) }
+        dpm.setStatusBarDisabled(admin, true)
         dpm.setPermittedAccessibilityServices(admin, emptyList())
         dpm.setPermittedInputMethods(admin, emptyList())
         dpm.setUninstallBlocked(admin, SIGNER, true)
@@ -138,6 +157,7 @@ class Policy(private val context: Context) {
     fun release() {
         prefs.edit().remove(USB_OPEN).commit()
         RESTRICTIONS.forEach { dpm.clearUserRestriction(admin, it) }
+        dpm.setStatusBarDisabled(admin, false)
         dpm.setPermittedAccessibilityServices(admin, null)
         dpm.setPermittedInputMethods(admin, null)
         dpm.setUninstallBlocked(admin, SIGNER, false)
@@ -156,7 +176,6 @@ class Policy(private val context: Context) {
         private const val USB_OPEN = "usbOpen"
 
         val RESTRICTIONS = listOf(
-            UserManager.DISALLOW_AIRPLANE_MODE,
             UserManager.DISALLOW_BLUETOOTH,
             UserManager.DISALLOW_CONFIG_BLUETOOTH,
             UserManager.DISALLOW_CONFIG_WIFI,

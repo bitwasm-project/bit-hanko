@@ -67,6 +67,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         policy = Policy(this)
+        policy.dropAirplaneRestriction()
         val night = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
         p = if (night) DesignTokens.dark else DesignTokens.light
         styleWindow(night)
@@ -337,6 +338,7 @@ class MainActivity : Activity() {
         listOf(
             tr("署名アプリ", "Signer") to (policy.signerVersion ?: tr("未インストール", "Not installed")),
             tr("機内モード", "Airplane mode") to if (policy.isAirplaneModeOn) tr("オン", "On") else tr("オフ", "Off"),
+            tr("SIM カード", "SIM card") to if (policy.hasSim) tr("あり", "Inserted") else tr("なし", "None"),
             tr("保存済みの Wi-Fi", "Saved Wi-Fi networks") to "${policy.savedWifiCount}",
             tr("非表示のアプリ", "Hidden apps") to "$hidden / $hideable",
             tr("制限", "Restrictions") to "${active.size} / ${Policy.RESTRICTIONS.size}",
