@@ -37,5 +37,5 @@ echo "$result"
 echo "$result" | grep -q '^Success' || exit 1
 
 echo; echo "== 4. On the phone"
-echo "1) Turn on airplane mode"
+echo "1) Take out the SIM card and turn on airplane mode"
 echo "2) Open Signer Lockdown and tap Apply restrictions (this stops USB debugging and disconnects this PC)"

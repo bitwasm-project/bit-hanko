@@ -8,7 +8,8 @@ Tested on a phone running Android 10.
 
 ## What it locks
 
-- Airplane mode stays on. Bluetooth, Wi-Fi, tethering, mobile network and location settings cannot be changed
+- Nothing for the radios to join: it is applied only with no SIM card, Bluetooth is off and Wi-Fi, tethering, mobile network and location settings cannot be changed
+- The quick settings panel cannot be opened. Android lets no app hold airplane mode on, so it can still be turned off in Settings; with no SIM and no saved Wi-Fi network the phone still has nothing to connect to
 - No new accounts or users, no installs from unknown sources, no enabling or disabling apps in Settings, no safe mode, no USB file transfer, no USB debugging
 - Only built-in accessibility services and keyboards
 - The signer cannot be uninstalled, so a seed saved on the phone is not lost by accident
@@ -26,7 +27,7 @@ Each release has `signer-lockdown-<version>.apk` (with the signer inside) and `p
 3. Connect to Wi-Fi and scan `provisioning-<version>.png`. The phone downloads Lockdown from the release and checks it against the SHA-256 in the QR code. "This device belongs to your organization" refers to Lockdown; tap Next
 4. Set a screen lock. Do not add a Google account, and turn off every switch on the Google Services screen
 5. Open Signer Lockdown and tap Install the signer
-6. Turn on airplane mode and tap Apply restrictions. The Wi-Fi network used in step 3 is forgotten unless you untick the box
+6. Take out the SIM card, turn on airplane mode and tap Apply restrictions. The Wi-Fi network used in step 3 is forgotten unless you untick the box; keep the box ticked, or the phone rejoins it if airplane mode is turned off
 
 Android 12 and later need two more provisioning screens (`GET_PROVISIONING_MODE` / `ADMIN_POLICY_COMPLIANCE`) that Lockdown does not have yet.
 
@@ -67,7 +68,7 @@ Only the signer and Lockdown packages are accepted. Android refuses an APK signe
 2. Connect the PC, pick File transfer in the phone's USB notification and copy the release APK to Download
 3. Tap Choose the APK. File transfer is blocked again at that moment, then continue as in step 3 above
 
-Only file transfer is allowed, and only while that dialog is open. USB debugging and airplane mode stay locked. File transfer reaches shared storage only; the signer's saved seeds are in its private storage, encrypted with its own Keystore keys, and neither the PC nor Lockdown can read them. If Lockdown is closed while the dialog is open, it blocks file transfer again the next time it starts.
+Only file transfer is allowed, and only while that dialog is open. USB debugging stays blocked. File transfer reaches shared storage only; the signer's saved seeds are in its private storage, encrypted with its own Keystore keys, and neither the PC nor Lockdown can read them. If Lockdown is closed while the dialog is open, it blocks file transfer again the next time it starts.
 
 ## Check from a PC
 

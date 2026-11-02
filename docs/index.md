@@ -32,7 +32,7 @@ How air-gapped the signer is depends on the phone you put it on. Pick the row th
 
 | Setup | Air-gapped? | Protects against | Does not protect against |
 | --- | --- | --- | --- |
-| A spare Android phone with [Signer Lockdown](lockdown.md) | Yes, held by the OS: airplane mode cannot be turned off, and no new apps or accounts can be added | Apps or accounts added later, turning the radios back on by mistake, USB debugging and file transfer | A flaw in Android or the phone's firmware, radio hardware that ignores airplane mode, a tampered APK |
+| A spare Android phone with [Signer Lockdown](lockdown.md) | Yes, held by the OS: no SIM, no saved Wi-Fi, Wi-Fi and Bluetooth settings locked, and no new apps or accounts | Apps or accounts added later, joining a network by mistake, USB debugging and file transfer | A flaw in Android or the phone's firmware, radio hardware that ignores these settings, a tampered APK |
 | A spare phone that you keep offline yourself (Android app or web app) | Only as long as you keep it offline | Remote attacks while it stays offline | Going online by mistake; with the web app, a new build arriving when it goes online |
 | The web app or app on the phone you use every day | **No.** It is an online phone | Other apps and sites reading the key: it is held only while you sign and wiped when you leave the app (the web app also wipes it when the phone goes online) | Malware with control of the phone, a flaw in the browser or OS. Treat it like a hot wallet |
 
@@ -54,7 +54,7 @@ As you scroll, the phone moves to the screen each section talks about. With **Fo
 
 ## 1. Setup {#offline}
 
-The signer runs on Android and iOS. How to install it depends on what you are willing to trust; see [Setup](setup.md). On Android, [Signer Lockdown](lockdown.md) makes a dedicated signer that keeps airplane mode on and, as Device Owner, blocks USB debugging, new apps and accounts.
+The signer runs on Android and iOS. How to install it depends on what you are willing to trust; see [Setup](setup.md). On Android, [Signer Lockdown](lockdown.md) makes a dedicated signer: with the SIM card out, it locks the Wi-Fi and Bluetooth settings and, as Device Owner, blocks USB debugging, new apps and accounts.
 
 Once installed, Settings › Device restrictions lets you choose how the signer treats things that could leak what is on the screen or what you type: networks, Bluetooth and NFC, third-party keyboards, USB debugging and accessibility services. For each one you choose whether it is ignored, warns, or stops the key from loading while it is on. The browser demo does not have these checks.
 

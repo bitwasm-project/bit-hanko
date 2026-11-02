@@ -15,11 +15,11 @@
 
 ## 3. 制限を適用する {#android-lockdown-apply}
 
-画面ロックを設定します。Googleアカウントは追加せず、Google Servicesの画面のスイッチはすべてオフにします。Signer Lockdown を開いて「署名アプリを入れる」、機内モードをオンにして「制限を適用」を押します。
+画面ロックを設定します。Googleアカウントは追加せず、Google Servicesの画面のスイッチはすべてオフにします。Signer Lockdown を開いて「署名アプリを入れる」を押し、SIMカードを抜いて機内モードをオンにしてから「制限を適用」を押します。
 
 <div class="shots">
 <Shot name="lockdown-status" caption="署名アプリを入れたあとの状態" />
-<Shot name="lockdown-apply" caption="機内モードにしてから「制限を適用」" />
+<Shot name="lockdown-apply" caption="SIMを抜いて機内モードにしてから「制限を適用」" />
 </div>
 
 ## 4. 鍵を保存して使う {#android-lockdown-use}
