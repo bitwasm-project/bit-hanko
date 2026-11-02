@@ -2,6 +2,7 @@
 outline: false
 # Scrolling to a section moves the phone on the right to that screen (see Demo.vue)
 demo:
+  threats: []
   overview: []
   offline: ["#settings"]
   create: ["#create-mnemonic"]
@@ -24,6 +25,22 @@ demo:
 
 BitHanko is an app for air-gapped signing. It passes Bitcoin transactions as PSBTs (BIP174) in QR codes, so the private key that signs them stays on a device that never connects to anything.
 It brings what air-gapped signing needs to a phone: loading the private key, signing, and showing the signed PSBT as a QR code.
+
+## What it protects against {#threats}
+
+How air-gapped the signer is depends on the phone you put it on. Pick the row that matches yours.
+
+| Setup | Air-gapped? | Protects against | Does not protect against |
+| --- | --- | --- | --- |
+| A spare Android phone with [Signer Lockdown](lockdown.md) | Yes, held by the OS: airplane mode cannot be turned off, and no new apps or accounts can be added | Apps or accounts added later, turning the radios back on by mistake, USB debugging and file transfer | A flaw in Android or the phone's firmware, radio hardware that ignores airplane mode, a tampered APK |
+| A spare phone that you keep offline yourself (Android app or web app) | Only as long as you keep it offline | Remote attacks while it stays offline | Going online by mistake; with the web app, a new build arriving when it goes online |
+| The web app or app on the phone you use every day | **No.** It is an online phone | Other apps and sites reading the key: it is held only while you sign and wiped when you leave the app (the web app also wipes it when the phone goes online) | Malware with control of the phone, a flaw in the browser or OS. Treat it like a hot wallet |
+
+In every setup:
+
+- **Check the review screen.** Signing is only as safe as your check of the amounts and addresses it shows.
+- **Saving the key on the phone** ([Using the app](use.md)) trades safety for convenience: anyone who has the phone and its passcode can open it. By default nothing is saved.
+- **The software has not been audited.** Keep amounts small.
 
 ## How it works {#overview}
 

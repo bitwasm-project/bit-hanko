@@ -36,7 +36,7 @@ Webアプリでは、鍵も署名エンジンもブラウザ(iPhoneではWebKit)
 | --- | --- | --- | --- |
 | parser.wasm | 信頼しない入力を読む。鍵を持たない | C(同じ出力を返すRust版もある)、import 0 | アニメーションQR(UR)をつなぎ合わせてPSBT v0を解析し、6712バイトの決まった形の「計画」にまとめる。署名をPSBTに戻し、URにして返す |
 | signer.wasm | 鍵を持つ | C(libsecp256k1)、import 0 | 計画をもう一度確かめて、画面に出す内容を作り、署名する。ニーモニック、SeedQR、BIP32、BIP85、BIP137、xpub、マルチシグも扱う。PSBTそのものは読まない |
-| checker.wasm | もう一つの確認をする。鍵を持たない | Lean 4 のモデルをCにしてWASMへ、import 0 | signer.wasmとは別に書いた、署名前の判断のモデル。合計、手数料、署名する入力、出力の持ち主、画面の表示を計算し直し、signer.wasmと1バイトでも違えば署名しない |
+| checker.wasm | 追加の照合で、署名を止めることしかできない。鍵を持たない | Lean 4 のモデルをCにしてWASMへ、import 0 | signer.wasmとは別に書いた、署名前の判断のモデル。合計、手数料、署名する入力、出力の持ち主、画面の表示を計算し直し、signer.wasmと1バイトでも違えば署名しない |
 
 parser.wasm と signer.wasm は [bitwasm-signer](https://github.com/bitwasm-project/bitwasm-signer)、checker.wasm は btcsigner-spec のモデルから bitwasm-signer-lean でビルドしています。この2つのリポジトリはまだ公開していないため、今は checker.wasm を公開されたソースから作り直したり確かめたりはできません。
 

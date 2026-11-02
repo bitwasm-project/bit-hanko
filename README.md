@@ -10,7 +10,7 @@ An Android / iOS signing app built on the [bitwasm-signer](https://github.com/bi
 
 On an iPhone, open the [web app](https://bitwasm-project.github.io/bit-hanko/app/) in Safari and add it to the Home Screen; it then runs offline. See [the setup guide](https://bitwasm-project.github.io/bit-hanko/docs/quickstart/ios-pages).
 
-> **Warning:** This is experimental software. It has not been audited and comes with no warranty. The author is not responsible for lost funds or any other damage from using it. Keep amounts small.
+> **Warning:** This is experimental software. It has not been audited and comes with no warranty. The author is not responsible for lost funds or any other damage from using it. Keep amounts small. What each setup protects against is on [the first page of the guide](https://bitwasm-project.github.io/bit-hanko/docs/#threats).
 
 ## Screenshots
 
@@ -33,7 +33,7 @@ Checked means it has been tried on an Android 10 phone (ARMv7). Implemented mean
 | Backup check | A new mnemonic can be loaded as the signing key once it passes a five-question, four-choice check | Implemented | Implemented |
 | BIP85 | Derives child mnemonics | Implemented | Implemented |
 | Review a PSBT | Receives an animated UR `crypto-psbt` with the camera, parses it with parser.wasm and shows signer.wasm's review on a native screen | Checked | Implemented |
-| Sign | Signs after explicit approval and shows the signed PSBT as an animated UR. A full round trip with a wallet has not been checked | Implemented | Implemented |
+| Sign | Signs after explicit approval and shows the signed PSBT as an animated UR. A round trip with BlueWallet has been checked | Checked | Implemented |
 | Export the account | Public keys as an animated UR `crypto-account` (BIP49 / BIP84 / BIP86 / BIP48), readable by Sparrow / Nunchuk / Keystone style wallets, and the account xpubs and descriptors as QR codes | Implemented | Implemented |
 | Multisig | Registers a P2WSH multisig (up to 3 keys) from a descriptor / BSMS / Coldcard QR (`ur:bytes` too) after showing the keys and the first receive address. Afterwards change is shown as change and inputs from other wallets are not signed. Exports as `crypto-output`, and in save mode it is restored with the seed | Implemented | Implemented |
 | Addresses and messages | Address ownership checks and BIP137 message signing | Implemented | Implemented |
@@ -70,7 +70,7 @@ The WASM modules ship in `src-tauri/plugins/signer/android/src/main/assets/` and
 | signer.wasm | `d27fe4f8050193cc7101cf7fab26b0740a1b39e33c867ebc66cd05d9f9003508` |
 | checker.wasm | `579bf43d0652ed8152fae6d2ad2b0bf97afb9422e96b0d9e3658a3bd9f2a5912` |
 
-checker.wasm is a separate model of the review, written independently of signer.wasm. After signer.wasm's review passes, checker.wasm decides the same plan from the previous transactions and signer.wasm's `signer_facts()`. The review screen is shown only when both agree on the totals, the fee, the inputs to sign, the owner of each output, and each output's amount and address (or OP_RETURN / script hex) as shown on screen. Otherwise nothing is signed.
+checker.wasm is an extra consistency check that runs after signer.wasm's review passes. It can only stop a signature, never allow one, so signing does not depend on trusting it. Its sources are not public yet.
 
 On Android, Rust's Wasmi runs through JNI. On iOS, the Swift plugin calls the Rust Wasmi host. The minimum Android API is 26.
 
