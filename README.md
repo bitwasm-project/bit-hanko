@@ -2,11 +2,13 @@
 
 <sup>[日本語](docs/ja/README.md)</sup>
 
-An Android / iOS signing app built on the `bitwasm-signer` parser and signer WASM modules. By default the app keeps no key: it loads the key for each signing and erases it when you are done.
+An Android / iOS signing app built on the [bitwasm-signer](https://github.com/bitwasm-project/bitwasm-signer) parser and signer WASM modules. By default the app keeps no key: it loads the key for each signing and erases it when you are done.
 
 **[Read the guide](https://bitwasm-project.github.io/bit-hanko/docs/)**: how to set up and use the signer, from making a key to signing a transaction, with the browser demo running beside the text.
 
 **[Try the testnet demo in your browser](https://bitwasm-project.github.io/bit-hanko/)** · **[Install over USB](https://bitwasm-project.github.io/bit-hanko/install/)**
+
+On an iPhone, open the [web app](https://bitwasm-project.github.io/bit-hanko/app/) in Safari and add it to the Home Screen; it then runs offline. See [the setup guide](https://bitwasm-project.github.io/bit-hanko/docs/quickstart/ios-pages).
 
 > **Warning:** This is experimental software. It has not been audited and comes with no warranty. The author is not responsible for lost funds or any other damage from using it. Keep amounts small.
 
@@ -101,6 +103,26 @@ adb install -r bithanko-release.apk
 
 Match `--target` to the device's ABI (`adb shell getprop ro.product.cpu.abilist`; `arm64-v8a` means `aarch64`).
 
+### iOS
+
+Install Xcode and the Rust `aarch64-apple-ios` target, and pass your own Apple team ID.
+
+```sh
+APPLE_DEVELOPMENT_TEAM=<your team ID> pnpm tauri ios build --debug --export-method debugging
+```
+
+### Web app (PWA)
+
+```sh
+pnpm build:pwa   # writes to dist-web/app
+```
+
+### Tests
+
+```sh
+cargo test --manifest-path src-tauri/plugins/signer/Cargo.toml
+```
+
 ### Distributing the APK
 
 Pushing a `v<version in tauri.conf.json>` tag makes GitHub Actions attach a universal APK (aarch64 / armv7) signed with the release key, Signer Lockdown with that APK inside, its provisioning QR code and a `SHA256SUMS` file to a draft release. Register these repository secrets first.
@@ -141,3 +163,7 @@ pnpm build:docs  # writes to dist-web/docs, after pnpm build:web
 What has been checked on each platform is in the table under [What it does on Android / iOS](#what-it-does-on-android--ios). Native hosts for Windows / macOS / Linux are not implemented.
 
 Plans are in [docs/roadmap.md](docs/roadmap.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).

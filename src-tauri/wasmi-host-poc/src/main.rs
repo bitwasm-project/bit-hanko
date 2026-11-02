@@ -9,7 +9,7 @@ use wasmi::{Engine, Instance, Linker, Memory, Module, Store};
 
 const SIGNER_WASM: &[u8] =
     include_bytes!("../../plugins/signer/android/src/main/assets/signer.wasm");
-const SIGNER_SHA256: &str = "96b78cd607c279183264e14501b649bc44f3a5372433bc2df482d648ba9d1001";
+const SIGNER_SHA256: &str = "d27fe4f8050193cc7101cf7fab26b0740a1b39e33c867ebc66cd05d9f9003508";
 const TEST_FINGERPRINT: &str = "73c5da0a";
 
 struct SignerHost {
