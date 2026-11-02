@@ -10,7 +10,7 @@
 
 iPhoneでは、Safariで[Webアプリ](https://bitwasm-project.github.io/bit-hanko/app/)を開いてホーム画面に追加すると、オフラインで動きます。[設定方法](https://bitwasm-project.github.io/bit-hanko/docs/ja/quickstart/ios-pages)を参照してください。
 
-> **注意:** 実験的なソフトウェアです。監査を受けておらず、無保証です。使用によって生じた資金の損失やその他の損害について、作者は責任を負いません。使う場合は少額にとどめてください。
+> **注意:** 実験的なソフトウェアです。監査を受けておらず、無保証です。使用によって生じた資金の損失やその他の損害について、作者は責任を負いません。使う場合は少額にとどめてください。使い方ごとに何から守れるかは、[ガイドの最初のページ](https://bitwasm-project.github.io/bit-hanko/docs/ja/#threats)にまとめています。
 
 ## 画面
 
@@ -33,7 +33,7 @@ Android（Android 10）とiOSシミュレーターの画面です。テストネ
 | 書き写しの確認 | 作成したニーモニックは4択5問の確認に通ったあと、そのまま署名鍵として読み込める | 実装済み | 実装済み |
 | BIP85 | ニーモニックを導出 | 実装済み | 実装済み |
 | PSBTのレビュー | カメラでアニメーションUR `crypto-psbt` を受信し、parser.wasmで解析し、signer.wasmのレビュー内容をネイティブ画面で確認 | 確認済み | 実装済み |
-| 署名 | 明示承認後に署名し、署名済みPSBTをアニメーションURで表示。ウォレットとの往復は未確認 | 実装済み | 実装済み |
+| 署名 | 明示承認後に署名し、署名済みPSBTをアニメーションURで表示。BlueWalletとの往復を確認済み | 確認済み | 実装済み |
 | アカウントの書き出し | 公開鍵をアニメーションUR `crypto-account`（BIP49 / BIP84 / BIP86 / BIP48）で表示し、Sparrow / Nunchuk / Keystone形式のウォレットが読める。アカウントxpubとdescriptorもQR表示 | 実装済み | 実装済み |
 | マルチシグ | P2WSHマルチシグ（3鍵まで）をdescriptor / BSMS / Coldcard形式のQR（`ur:bytes`も可）から、鍵の一覧と最初の受取アドレスを確認してから登録。登録後はお釣りをお釣りと表示し、別ウォレットの入力は署名しない。`crypto-output`で書き出せ、保存モードではseedと一緒に復元される | 実装済み | 実装済み |
 | アドレスとメッセージ | アドレスの所有確認とBIP137メッセージ署名 | 実装済み | 実装済み |
@@ -70,7 +70,7 @@ WASMは`src-tauri/plugins/signer/android/src/main/assets/`に同梱し、ロー�
 | signer.wasm | `d27fe4f8050193cc7101cf7fab26b0740a1b39e33c867ebc66cd05d9f9003508` |
 | checker.wasm | `579bf43d0652ed8152fae6d2ad2b0bf97afb9422e96b0d9e3658a3bd9f2a5912` |
 
-checker.wasmはsigner.wasmとは別に書いたレビューのモデルです。signer.wasmのレビューが通ったあと、同じplanと前のトランザクション、signer.wasmの`signer_facts()`から同じ判断をさせ、合計・手数料・署名する入力・出力の持ち主、画面に出す各出力の金額とアドレス（またはOP_RETURNやスクリプトの16進）が一致したときだけ確認画面を出します。一致しなければ署名しません。
+checker.wasmは、signer.wasmのレビューが通ったあとに走る追加の照合です。署名を止めることはあっても許すことはないので、署名の安全はこれを信頼することに依存しません。ソースはまだ公開していません。
 
 AndroidではRustのWasmiをJNI経由で実行します。iOSではSwiftプラグインからRustのWasmiホストを呼び出します。最小Android APIは26です。
 

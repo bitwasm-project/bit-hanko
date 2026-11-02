@@ -36,7 +36,7 @@ The signing engine is three WASM modules, each limited to as little input and ou
 | --- | --- | --- | --- |
 | parser.wasm | Reads untrusted input. Holds no key | C (a Rust version gives the same output), no imports | Joins animated QR codes (UR), parses PSBT v0 and packs it into a fixed 6,712-byte plan. Puts signatures back into the PSBT and encodes it as UR |
 | signer.wasm | Holds the key | C (libsecp256k1), no imports | Checks the plan again, builds what the screen shows, and signs. Also mnemonics, SeedQR, BIP32, BIP85, BIP137, xpubs and multisig. Never reads the PSBT itself |
-| checker.wasm | A second review. Holds no key | A Lean 4 model compiled to C, then WASM, no imports | A model of what a signer decides before signing, written separately from signer.wasm. Works out the totals, fee, inputs to sign, owner of each output and what the screen shows, and nothing is signed if it differs from signer.wasm by a single byte |
+| checker.wasm | An extra check that can only refuse. Holds no key | A Lean 4 model compiled to C, then WASM, no imports | A model of what a signer decides before signing, written separately from signer.wasm. Works out the totals, fee, inputs to sign, owner of each output and what the screen shows, and nothing is signed if it differs from signer.wasm by a single byte |
 
 parser.wasm and signer.wasm are built in [bitwasm-signer](https://github.com/bitwasm-project/bitwasm-signer), and checker.wasm in bitwasm-signer-lean, from a model in btcsigner-spec. Neither of those two repositories is public yet, so checker.wasm cannot be rebuilt or checked from public sources for now.
 
