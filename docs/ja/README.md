@@ -2,11 +2,13 @@
 
 <sup>[English](../../README.md)</sup>
 
-`bitwasm-signer` の parser / signer WASM を使うAndroid / iOSの署名アプリです。初めの設定ではアプリは鍵を持たず、署名のたびに読み込み、使い終わったら消します。
+[bitwasm-signer](https://github.com/bitwasm-project/bitwasm-signer) の parser / signer WASM を使うAndroid / iOSの署名アプリです。初めの設定ではアプリは鍵を持たず、署名のたびに読み込み、使い終わったら消します。
 
 **[使い方ガイドを読む](https://bitwasm-project.github.io/bit-hanko/docs/ja/)**: 鍵の作成から取引の署名まで、署名アプリの準備と使い方を、横で動くブラウザ版のデモと一緒に説明しています。
 
 **[ブラウザでテストネットのデモを試す](https://bitwasm-project.github.io/bit-hanko/)** · **[USBで入れる](https://bitwasm-project.github.io/bit-hanko/install/)**
+
+iPhoneでは、Safariで[Webアプリ](https://bitwasm-project.github.io/bit-hanko/app/)を開いてホーム画面に追加すると、オフラインで動きます。[設定方法](https://bitwasm-project.github.io/bit-hanko/docs/ja/quickstart/ios-pages)を参照してください。
 
 > **注意:** 実験的なソフトウェアです。監査を受けておらず、無保証です。使用によって生じた資金の損失やその他の損害について、作者は責任を負いません。使う場合は少額にとどめてください。
 
@@ -84,6 +86,26 @@ JAVA_HOME=/path/to/jdk ANDROID_HOME=/path/to/android-sdk NDK_HOME=/path/to/ndk p
 
 出力先は`src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk`です。
 
+### iOS
+
+Xcodeと、Rustの`aarch64-apple-ios`ターゲットを用意し、自分のAppleのチームIDを渡します。
+
+```sh
+APPLE_DEVELOPMENT_TEAM=<チームID> pnpm tauri ios build --debug --export-method debugging
+```
+
+### Webアプリ(PWA)
+
+```sh
+pnpm build:pwa   # dist-web/app に書き出す
+```
+
+### テスト
+
+```sh
+cargo test --manifest-path src-tauri/plugins/signer/Cargo.toml
+```
+
 ### 実機ではreleaseビルドを使う
 
 debugビルドはWASMを動かすRust側（Wasmi）が最適化なしでコンパイルされるため、実機では極端に遅くなります。ARMv7の端末ではニーモニックの読み込み（PBKDF2）に約90秒かかり、releaseビルドでは約3秒でした。動作確認はreleaseビルドで行います。
@@ -141,3 +163,7 @@ pnpm build:docs  # dist-web/docs に書き出す。pnpm build:web のあとに�
 各プラットフォームで確認したことは、[Android / iOSでできること](#android--iosでできること)の表にまとめています。Windows / macOS / Linuxのネイティブホストは未実装です。
 
 今後の予定は[roadmap.md](roadmap.md)にまとめています。
+
+## ライセンス
+
+MIT です。[LICENSE](../../LICENSE) を参照してください。
