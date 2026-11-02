@@ -29,6 +29,8 @@ zeroize = "1"
 sha2 = "0.10"
 
 [dev-dependencies]
+bip39 = "2"
+bitcoin = "0.32"
 sha2 = "0.10"
 wasmi = {
     version = "2.0.0",
