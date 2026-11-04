@@ -8,7 +8,7 @@ import { versions } from "./web/pwa";
 export const moduleHashes = {
   parser: "9407abe3a65a56ebcfcab6da3b685f4e21ce9f6a60b3feddd299ddc0def89bab",
   signer: "d27fe4f8050193cc7101cf7fab26b0740a1b39e33c867ebc66cd05d9f9003508",
-  checker: "579bf43d0652ed8152fae6d2ad2b0bf97afb9422e96b0d9e3658a3bd9f2a5912",
+  checker: "4c914685fa426fb1d64a189f9d00181ae84788547838bc72b396ef247c05d53b",
 };
 
 type View = { screen: Screen; signer: SignerState; busy: boolean };
