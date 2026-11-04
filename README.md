@@ -68,7 +68,7 @@ The WASM modules ship in `src-tauri/plugins/signer/android/src/main/assets/` and
 | --- | --- |
 | parser.wasm | `9407abe3a65a56ebcfcab6da3b685f4e21ce9f6a60b3feddd299ddc0def89bab` |
 | signer.wasm | `d27fe4f8050193cc7101cf7fab26b0740a1b39e33c867ebc66cd05d9f9003508` |
-| checker.wasm | `579bf43d0652ed8152fae6d2ad2b0bf97afb9422e96b0d9e3658a3bd9f2a5912` |
+| checker.wasm | `4c914685fa426fb1d64a189f9d00181ae84788547838bc72b396ef247c05d53b` |
 
 checker.wasm is an extra consistency check that runs after signer.wasm's review passes. It can only stop a signature, never allow one, so signing does not depend on trusting it. Its sources are not public yet.
 
